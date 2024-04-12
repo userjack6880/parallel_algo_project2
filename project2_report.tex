@@ -144,8 +144,9 @@ for(int i=0; i<ni+1; ++i) {
 
   Finally, some functions, such as \verb|computeStableTimestep|, requires that
   a minimum be reduced from the parallelization portion. In C++, if this was a
-  mathematical operation, such as summation or subtraction, this would be a 
-  trivial task. However, it is not. To prevent a race condition, a minimum
+  mathematical operation, such as summation or subtraction (such as in
+  \verb|integrateKineticEnergy|), this would be a trivial task using a built-in
+  reduction clause. However, it is not. To prevent a race condition, a minimum
   local to the thread must be calculated, and once that is done, a critical
   section is added so that only one thread does a global (or team) comparison
   to set the final minimum value.
@@ -185,11 +186,85 @@ float minDt = 1e30;
     
   \end{lstlisting}
 
-  
+  The \verb|nowait| clause was used so that the threads do not wait for other
+  threads to reach the critical section before performing it.
+
+  Further parallelization could be done, with each parallelized function being
+  further parallelized using MPI, however this is outside of the scope of the
+  undergraduate assignment.
 
   \section{Analysis}
 
-  
+  Very little of the code is spent in serial execution, as all of the functions
+  were able to be parallelized to a great extent. A generious extimation of
+  approximately 90\% of the execution time being parallelized gives us the
+  serial fraction of:
+
+  \[ f = \frac{W_S}{W_S + \sum W_K} = \frac{0.1}{1} = 0.1 \]
+
+  based on the assumption that \( t_1 = 1 \). The upper bound of the speedup 
+  is:
+
+  \[ S_{upper} = \frac{1}{f} = \frac{1}{0.1} = 10 \]
+
+  The upper bound can be compared to the estimated speedup for the number of
+  procesors that will be used using the following equations:
+
+  \[ t_p = \left[ f + \frac{\left( 1 - f \right)}{p} \right] \times t_1 \]
+
+  \[ S = \frac{t_1}{t_p} \]
+
+  The estimated speedups are listed in Table~\ref{table:estspeeduptab} and plotted
+  in Figure~\ref{fig:estspeedupfig}.
+
+  \begin{table}[H]
+    \caption{Estimated Speedup}
+    \label{tab:estspeeduptab}
+    \centering
+
+    \begin{tabular}{|c|c|}
+      \hline
+      Proc & Speedup \\
+      \hline
+      1  & 1
+      2  & 1.\overline{81}
+      4  & 3.077
+      8  & 4.706
+      16 & 6.4
+      32 & 7.805
+      64 & 8.767
+      \hline
+    \end{tabular}
+  \end{table}
+
+  \begin{figure}[H]
+    \caption{Estimated Speedup}
+    \label{fig:estspeedupfig}
+    \centering
+
+    \begin{tikzpicture}
+      \begin{semilogxaxis}[
+        width=0.9\textwidth,
+        height=8cm,
+        xlabel={$processors$},
+        ylabel={$speedup$},
+        grid=both,
+        ymin=0,
+        ymax=10
+      ]
+
+      \addplot[blue,mark=none] coordinates {
+        (1,1)
+        (2,1.81)
+        (4,3.077)
+        (8,4.706)
+        (16,6.4)
+        (32,7.805)
+        (64,8.767)
+      };
+      \end(semilogxaxis)
+    \end{tikzpicture}
+  \end{figure}
 
   \section{Results}
 
