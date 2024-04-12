@@ -109,11 +109,10 @@ for(int i=0; i<ni+1; ++i) {
   \end{lstlisting}
 
   This ensure that more than one thread updates the variable at the same time
-  to avoid a race condition. However, this will likely result in performances
-  issues as each block of loops may reference the same variables. This may be
-  addressed by OpenMP \verb|taskwait| between parallelized sections.
-  Additionally, each pair of residiual vectors can have their own set of locks,
-  though at this point it may be better to adomize each variable.
+  to avoid a race condition. However, this will likely result in a performance
+  impact as the entire block is prevented from being entered by another loop.
+  Creating additional locks for each individual vector component may mitigate 
+  this.
 
   \section{Analysis}
 

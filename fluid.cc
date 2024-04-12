@@ -180,234 +180,242 @@ void computeResidual(float *presid, float *uresid, float *vresid, float *wresid,
   // Add fluxes to cells that neighbor face
 
   // openMP lock
-  omp_lock_t lock;
-  omp_init_lock(&lock);
+  omp_lock_t lockp, locku, lockv, lockw;
+  omp_init_lock(&lockp);
+  omp_init_lock(&locku);
+  omp_init_lock(&lockv);
+  omp_init_lock(&lockw);
 
   #pragma omp parallel
   {
-    #pragma omp single
-    {
-      #pragma omp task
-      {
-        #pragma omp for
-        for(int i=0; i<ni+1; ++i) {
-          const float vcoef = nu/dx;
-          const float area = dy*dz;
-          for(int j=0; j<nj; ++j) {
-            int offset = kstart+i*iskip+j*jskip;
-            for(int k=0; k<nk; ++k) {
-              const int indx = k+offset;
+    #pragma omp for
+    for(int i=0; i<ni+1; ++i) {
+      const float vcoef = nu/dx;
+      const float area = dy*dz;
+      for(int j=0; j<nj; ++j) {
+        int offset = kstart+i*iskip+j*jskip;
+        for(int k=0; k<nk; ++k) {
+          const int indx = k+offset;
 
-              // Compute the x direction inviscid flux
-              // extract pressures from the stencil
-              float ull = u[indx-2*iskip];
-              float ul  = u[indx-iskip];
-              float ur  = u[indx];
-              float urr = u[indx+iskip];
+          // Compute the x direction inviscid flux
+          // extract pressures from the stencil
+          float ull = u[indx-2*iskip];
+          float ul  = u[indx-iskip];
+          float ur  = u[indx];
+          float urr = u[indx+iskip];
 
-              float vll = v[indx-2*iskip];
-              float vl  = v[indx-iskip];
-              float vr  = v[indx];
-              float vrr = v[indx+iskip];
+          float vll = v[indx-2*iskip];
+          float vl  = v[indx-iskip];
+          float vr  = v[indx];
+          float vrr = v[indx+iskip];
 
-              float wll = w[indx-2*iskip];
-              float wl  = w[indx-iskip];
-              float wr  = w[indx];
-              float wrr = w[indx+iskip];
+          float wll = w[indx-2*iskip];
+          float wl  = w[indx-iskip];
+          float wr  = w[indx];
+          float wrr = w[indx+iskip];
 
-              float pll = p[indx-2*iskip];
-              float pl  = p[indx-iskip];
-              float pr  = p[indx];
-              float prr = p[indx+iskip];
+          float pll = p[indx-2*iskip];
+          float pl  = p[indx-iskip];
+          float pr  = p[indx];
+          float prr = p[indx+iskip];
 
-              float pterm = (2./3.)*(pl+pr) - (1./12.)*(pl+pr+pll+prr);
-              
-              // x direction so the flux will be a function of u
-              float udotn1 = ul+ur;
-              float udotn2 = ul+urr;
-              float udotn3 = ull+ur;
+          float pterm = (2./3.)*(pl+pr) - (1./12.)*(pl+pr+pll+prr);
+          
+          // x direction so the flux will be a function of u
+          float udotn1 = ul+ur;
+          float udotn2 = ul+urr;
+          float udotn3 = ull+ur;
 
-              float pflux = eta*((2./3.)*udotn1 - (1./12.)*(udotn2+udotn3));
-              float uflux = ((1./3.)*(ul+ur)*udotn1 -
-                            (1./24.)*((ul+urr)*udotn2 + (ull+ur)*udotn3) +
-                            pterm);
-              float vflux = ((1./3.)*(vl+vr)*udotn1 -
-                            (1./24.)*((vl+vrr)*udotn2 + (vll+vr)*udotn3));
+          float pflux = eta*((2./3.)*udotn1 - (1./12.)*(udotn2+udotn3));
+          float uflux = ((1./3.)*(ul+ur)*udotn1 -
+                        (1./24.)*((ul+urr)*udotn2 + (ull+ur)*udotn3) +
+                        pterm);
+          float vflux = ((1./3.)*(vl+vr)*udotn1 -
+                        (1./24.)*((vl+vrr)*udotn2 + (vll+vr)*udotn3));
 
-              float wflux = ((1./3.)*(wl+wr)*udotn1 -
-                            (1./24.)*((wl+wrr)*udotn2 + (wll+wr)*udotn3));
+          float wflux = ((1./3.)*(wl+wr)*udotn1 -
+                        (1./24.)*((wl+wrr)*udotn2 + (wll+wr)*udotn3));
 
-              // Add in viscous fluxes integrate over face area
-              pflux *= area;
-              uflux = area*(uflux - vcoef*((5./4.)*(ur-ul) - (1./12.)*(urr-ull)));
-              vflux = area*(vflux - vcoef*((5./4.)*(vr-vl) - (1./12.)*(vrr-vll)));
-              wflux = area*(wflux - vcoef*((5./4.)*(wr-wl) - (1./12.)*(wrr-wll)));
+          // Add in viscous fluxes integrate over face area
+          pflux *= area;
+          uflux = area*(uflux - vcoef*((5./4.)*(ur-ul) - (1./12.)*(urr-ull)));
+          vflux = area*(vflux - vcoef*((5./4.)*(vr-vl) - (1./12.)*(vrr-vll)));
+          wflux = area*(wflux - vcoef*((5./4.)*(wr-wl) - (1./12.)*(wrr-wll)));
 
-              omp_set_lock(&lock);
-              presid[indx-iskip] -= pflux;
-              presid[indx]       += pflux;
-              uresid[indx-iskip] -= uflux;
-              uresid[indx]       += uflux;
-              vresid[indx-iskip] -= vflux;
-              vresid[indx]       += vflux;
-              wresid[indx-iskip] -= wflux;
-              wresid[indx]       += wflux;
-              omp_unset_lock(&lock);
-            }
-          }
+          omp_set_lock(&lockp);
+          presid[indx-iskip] -= pflux;
+          presid[indx]       += pflux;
+          omp_unset_lock(&lockp);
+          omp_set_lock(&locku);
+          uresid[indx-iskip] -= uflux;
+          uresid[indx]       += uflux;
+          omp_unset_lock(&locku);
+          omp_set_lock(&lockv);
+          vresid[indx-iskip] -= vflux;
+          vresid[indx]       += vflux;
+          omp_unset_lock(&lockv);
+          omp_set_lock(&lockw);
+          wresid[indx-iskip] -= wflux;
+          wresid[indx]       += wflux;
+          omp_unset_lock(&lockw);
         }
       }
-
-      #pragma omp taskwait
+    }
+  }
 
     // Loop through j faces of the mesh and compute fluxes in y direction
     // Add fluxes to cells that neighbor face
+  #pragma omp parallel
+  {
+    #pragma omp for
+    for(int i=0; i<ni; ++i) {
+      const float vcoef = nu/dy;
+      const float area = dx*dz;
+      for(int j=0; j<nj+1; ++j) {
+        int offset = kstart+i*iskip+j*jskip;
+        for(int k=0; k<nk; ++k) {
+          const int indx = k+offset;
 
-      #pragma omp task
-      {
-        #pragma omp for
-        for(int i=0; i<ni; ++i) {
-          const float vcoef = nu/dy;
-          const float area = dx*dz;
-          for(int j=0; j<nj+1; ++j) {
-            int offset = kstart+i*iskip+j*jskip;
-            for(int k=0; k<nk; ++k) {
-              const int indx = k+offset;
+          // Compute the y direction inviscid flux
+          // extract pressures and velocity from the stencil
+          float ull = u[indx-2*jskip];
+          float ul  = u[indx-jskip];
+          float ur  = u[indx];
+          float urr = u[indx+jskip];
 
-              // Compute the y direction inviscid flux
-              // extract pressures and velocity from the stencil
-              float ull = u[indx-2*jskip];
-              float ul  = u[indx-jskip];
-              float ur  = u[indx];
-              float urr = u[indx+jskip];
+          float vll = v[indx-2*jskip];
+          float vl  = v[indx-jskip];
+          float vr  = v[indx];
+          float vrr = v[indx+jskip];
 
-              float vll = v[indx-2*jskip];
-              float vl  = v[indx-jskip];
-              float vr  = v[indx];
-              float vrr = v[indx+jskip];
+          float wll = w[indx-2*jskip];
+          float wl  = w[indx-jskip];
+          float wr  = w[indx];
+          float wrr = w[indx+jskip];
 
-              float wll = w[indx-2*jskip];
-              float wl  = w[indx-jskip];
-              float wr  = w[indx];
-              float wrr = w[indx+jskip];
+          float pll = p[indx-2*jskip];
+          float pl  = p[indx-jskip];
+          float pr  = p[indx];
+          float prr = p[indx+jskip];
 
-              float pll = p[indx-2*jskip];
-              float pl  = p[indx-jskip];
-              float pr  = p[indx];
-              float prr = p[indx+jskip];
+          float pterm = (2./3.)*(pl+pr) - (1./12.)*(pl+pr+pll+prr);
 
-              float pterm = (2./3.)*(pl+pr) - (1./12.)*(pl+pr+pll+prr);
+          // y direction so the flux will be a function of v
+          float udotn1 = vl+vr;
+          float udotn2 = vl+vrr;
+          float udotn3 = vll+vr;
 
-              // y direction so the flux will be a function of v
-              float udotn1 = vl+vr;
-              float udotn2 = vl+vrr;
-              float udotn3 = vll+vr;
+          float pflux = eta*((2./3.)*udotn1 - (1./12.)*(udotn2+udotn3));
+          float uflux = ((1./3.)*(ul+ur)*udotn1 -
+                        (1./24.)*((ul+urr)*udotn2 + (ull+ur)*udotn3));
+          float vflux = ((1./3.)*(vl+vr)*udotn1 -
+                        (1./24.)*((vl+vrr)*udotn2 + (vll+vr)*udotn3)
+                        +pterm);
+          float wflux = ((1./3.)*(wl+wr)*udotn1 -
+                        (1./24.)*((wl+wrr)*udotn2 + (wll+wr)*udotn3));
 
-              float pflux = eta*((2./3.)*udotn1 - (1./12.)*(udotn2+udotn3));
-              float uflux = ((1./3.)*(ul+ur)*udotn1 -
-                            (1./24.)*((ul+urr)*udotn2 + (ull+ur)*udotn3));
-              float vflux = ((1./3.)*(vl+vr)*udotn1 -
-                            (1./24.)*((vl+vrr)*udotn2 + (vll+vr)*udotn3)
-                            +pterm);
-              float wflux = ((1./3.)*(wl+wr)*udotn1 -
-                            (1./24.)*((wl+wrr)*udotn2 + (wll+wr)*udotn3));
+          // Add in viscous fluxes integrate over face area
+          pflux *= area;
+          uflux = area*(uflux - vcoef*((5./4.)*(ur-ul) - (1./12.)*(urr-ull)));
+          vflux = area*(vflux - vcoef*((5./4.)*(vr-vl) - (1./12.)*(vrr-vll)));
+          wflux = area*(wflux - vcoef*((5./4.)*(wr-wl) - (1./12.)*(wrr-wll)));
 
-              // Add in viscous fluxes integrate over face area
-              pflux *= area;
-              uflux = area*(uflux - vcoef*((5./4.)*(ur-ul) - (1./12.)*(urr-ull)));
-              vflux = area*(vflux - vcoef*((5./4.)*(vr-vl) - (1./12.)*(vrr-vll)));
-              wflux = area*(wflux - vcoef*((5./4.)*(wr-wl) - (1./12.)*(wrr-wll)));
-
-              omp_set_lock(&lock);
-              presid[indx-jskip] -= pflux;
-              presid[indx]       += pflux;
-              uresid[indx-jskip] -= uflux;
-              uresid[indx]       += uflux;
-              vresid[indx-jskip] -= vflux;
-              vresid[indx]       += vflux;
-              wresid[indx-jskip] -= wflux;
-              wresid[indx]       += wflux;
-              omp_unset_lock(&lock);
-            }
-          }
+          omp_set_lock(&lockp);
+          presid[indx-jskip] -= pflux;
+          presid[indx]       += pflux;
+          omp_unset_lock(&lockp);
+          omp_set_lock(&locku);
+          uresid[indx-jskip] -= uflux;
+          uresid[indx]       += uflux;
+          omp_unset_lock(&locku);
+          omp_set_lock(&lockv);
+          vresid[indx-jskip] -= vflux;
+          vresid[indx]       += vflux;
+          omp_unset_lock(&lockv);
+          omp_set_lock(&lockw);
+          wresid[indx-jskip] -= wflux;
+          wresid[indx]       += wflux;
+          omp_unset_lock(&lockw);
         }
       }
-      
-      #pragma omp taskwait
+    }
+  }
 
     // Loop through k faces of the mesh and compute fluxes in z direction
     // Add fluxes to cells that neighbor face
-      #pragma omp task
-      {
-        #pragma omp for
-        for(int i=0; i<ni; ++i) {
-          const float vcoef = nu/dz;
-          const float area = dx*dy;
-          for(int j=0; j<nj; ++j) {
-            int offset = kstart+i*iskip+j*jskip;
-            for(int k=0; k<nk+1; ++k) {
-              const int indx = k+offset;
+  #pragma omp parallel
+  {
+    #pragma omp for
+    for(int i=0; i<ni; ++i) {
+      const float vcoef = nu/dz;
+      const float area = dx*dy;
+      for(int j=0; j<nj; ++j) {
+        int offset = kstart+i*iskip+j*jskip;
+        for(int k=0; k<nk+1; ++k) {
+          const int indx = k+offset;
 
-              // Compute the y direction inviscid flux
-              // extract pressures and velocity from the stencil
-              float ull = u[indx-2*kskip];
-              float ul  = u[indx-kskip];
-              float ur  = u[indx];
-              float urr = u[indx+kskip];
+          // Compute the y direction inviscid flux
+          // extract pressures and velocity from the stencil
+          float ull = u[indx-2*kskip];
+          float ul  = u[indx-kskip];
+          float ur  = u[indx];
+          float urr = u[indx+kskip];
 
-              float vll = v[indx-2*kskip];
-              float vl  = v[indx-kskip];
-              float vr  = v[indx];
-              float vrr = v[indx+kskip];
+          float vll = v[indx-2*kskip];
+          float vl  = v[indx-kskip];
+          float vr  = v[indx];
+          float vrr = v[indx+kskip];
 
-              float wll = w[indx-2*kskip];
-              float wl  = w[indx-kskip];
-              float wr  = w[indx];
-              float wrr = w[indx+kskip];
+          float wll = w[indx-2*kskip];
+          float wl  = w[indx-kskip];
+          float wr  = w[indx];
+          float wrr = w[indx+kskip];
 
-              float pll = p[indx-2*kskip];
-              float pl  = p[indx-kskip];
-              float pr  = p[indx];
-              float prr = p[indx+kskip];
+          float pll = p[indx-2*kskip];
+          float pl  = p[indx-kskip];
+          float pr  = p[indx];
+          float prr = p[indx+kskip];
 
-              float pterm = (2./3.)*(pl+pr) - (1./12.)*(pl+pr+pll+prr);
+          float pterm = (2./3.)*(pl+pr) - (1./12.)*(pl+pr+pll+prr);
 
-              // y direction so the flux will be a function of v
-              float udotn1 = wl+wr;
-              float udotn2 = wl+wrr;
-              float udotn3 = wll+wr;
+          // y direction so the flux will be a function of v
+          float udotn1 = wl+wr;
+          float udotn2 = wl+wrr;
+          float udotn3 = wll+wr;
 
-              float pflux = eta*((2./3.)*udotn1 - (1./12.)*(udotn2+udotn3));
-              float uflux = ((1./3.)*(ul+ur)*udotn1 -
-                            (1./24.)*((ul+urr)*udotn2 + (ull+ur)*udotn3));
-              float vflux = ((1./3.)*(vl+vr)*udotn1 -
-                            (1./24.)*((vl+vrr)*udotn2 + (vll+vr)*udotn3));
-              float wflux = ((1./3.)*(wl+wr)*udotn1 -
-                            (1./24.)*((wl+wrr)*udotn2 + (wll+wr)*udotn3)
-                            + pterm);
+          float pflux = eta*((2./3.)*udotn1 - (1./12.)*(udotn2+udotn3));
+          float uflux = ((1./3.)*(ul+ur)*udotn1 -
+                        (1./24.)*((ul+urr)*udotn2 + (ull+ur)*udotn3));
+          float vflux = ((1./3.)*(vl+vr)*udotn1 -
+                        (1./24.)*((vl+vrr)*udotn2 + (vll+vr)*udotn3));
+          float wflux = ((1./3.)*(wl+wr)*udotn1 -
+                        (1./24.)*((wl+wrr)*udotn2 + (wll+wr)*udotn3)
+                        + pterm);
 
-              // Add in viscous fluxes integrate over face area
-              pflux *= area;
-              uflux = area*(uflux - vcoef*((5./4.)*(ur-ul) - (1./12.)*(urr-ull)));
-              vflux = area*(vflux - vcoef*((5./4.)*(vr-vl) - (1./12.)*(vrr-vll)));
-              wflux = area*(wflux - vcoef*((5./4.)*(wr-wl) - (1./12.)*(wrr-wll)));
+          // Add in viscous fluxes integrate over face area
+          pflux *= area;
+          uflux = area*(uflux - vcoef*((5./4.)*(ur-ul) - (1./12.)*(urr-ull)));
+          vflux = area*(vflux - vcoef*((5./4.)*(vr-vl) - (1./12.)*(vrr-vll)));
+          wflux = area*(wflux - vcoef*((5./4.)*(wr-wl) - (1./12.)*(wrr-wll)));
 
-              omp_set_lock(&lock);
-              presid[indx-kskip] -= pflux;
-              presid[indx]       += pflux;
-              uresid[indx-kskip] -= uflux;
-              uresid[indx]       += uflux;
-              vresid[indx-kskip] -= vflux;
-              vresid[indx]       += vflux;
-              wresid[indx-kskip] -= wflux;
-              wresid[indx]       += wflux;
-              omp_unset_lock(&lock);
-            }
-          }
+          omp_set_lock(&lockp);
+          presid[indx-kskip] -= pflux;
+          presid[indx]       += pflux;
+          omp_unset_lock(&lockp);
+          omp_set_lock(&locku);
+          uresid[indx-kskip] -= uflux;
+          uresid[indx]       += uflux;
+          omp_unset_lock(&locku);
+          omp_set_lock(&lockv);
+          vresid[indx-kskip] -= vflux;
+          vresid[indx]       += vflux;
+          omp_unset_lock(&lockv);
+          omp_set_lock(&lockw);
+          wresid[indx-kskip] -= wflux;
+          wresid[indx]       += wflux;
+          omp_unset_lock(&lockw);
         }
       }
-
-      #pragma omp taskwait
     }
   }
 }
