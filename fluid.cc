@@ -525,6 +525,17 @@ int main(int ac, char *av[]) {
     }
     cout << "Running OpenMP with num threads = " << num_threads << endl;
     double start = omp_get_wtime();
+
+    cout << "For Loop Test" << endl;
+    #pragma omp parallel default(private)
+    {
+      cout << "I am thread " << thread_id << endl;
+      int n = 64;
+      #pragma omp for
+      for (int i = 0; i < n; i++) {
+        cout << thread_id << ": iteration " << i << endl;
+      }
+    }
   #endif
   
   // Eta is a artificial compressibility parameter to the numerical scheme
