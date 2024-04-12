@@ -18,16 +18,14 @@ void setInitialConditions(float *p, float *u, float *v, float *w,
   const float coef = 1.0;
   #pragma omp parallel
   {
-    #pragma omp for
+    #pragma omp for collapse(2)
     for(int i=0; i<ni; ++i) {
       float dx = (1./ni)*L;
       float x = 0.5*dx + (i)*dx - 0.5*L;
-      #pragma omp for
       for(int j=0; j<nj; ++j) {
         float dy = (1./nj)*L;
         float y = 0.5*dy+j*dy - 0.5*L;
         int offset = kstart+i*iskip+j*jskip;
-        #pragma omp for
         for(int k=0; k<nk; ++k) {
           int indx = offset + k;
           float dz = (1./nk)*L;
