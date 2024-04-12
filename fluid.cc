@@ -16,9 +16,8 @@ void setInitialConditions(float *p, float *u, float *v, float *w,
   const int kskip = 1;
   const float l = 1.0;
   const float coef = 1.0;
-  #pragma omp parallel
+  #pragma omp parallel for
   {
-    #pragma omp for
     for(int i=0; i<ni; ++i) {
       float dx = (1./ni)*L;
       float x = 0.5*dx + (i)*dx - 0.5*L;
@@ -143,9 +142,8 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
 void zeroResidual(float *presid, float *uresid, float *vresid, float *wresid,
                   int ni, int nj, int nk , int kstart, int iskip, int jskip) {
   const int kskip=1;
-  #pragma omp parallel
+  #pragma omp parallel for
   {
-    #pragma omp for
     for(int i=-1; i<ni+1; ++i) {
       for(int j=-1; j<nj+1; ++j) {
         int offset = kstart+i*iskip+j*jskip;
@@ -179,9 +177,8 @@ void computeResidual(float *presid, float *uresid, float *vresid, float *wresid,
   // Loop through i faces of the mesh and compute fluxes in x direction
   // Add fluxes to cells that neighbor face
 
-   #pragma omp parallel
+  #pragma omp parallel for
   {
-    #pragma omp for
     for(int j=0; j<nj; ++j) {
       const float vcoef = nu/dx;
       const float area = dy*dz;
@@ -250,9 +247,8 @@ void computeResidual(float *presid, float *uresid, float *vresid, float *wresid,
 
     // Loop through j faces of the mesh and compute fluxes in y direction
     // Add fluxes to cells that neighbor face
-  #pragma omp parallel
+  #pragma omp parallel for
   {
-    #pragma omp for
     for(int i=0; i<ni; ++i) {
       const float vcoef = nu/dy;
       const float area = dx*dz;
@@ -320,9 +316,8 @@ void computeResidual(float *presid, float *uresid, float *vresid, float *wresid,
 
     // Loop through k faces of the mesh and compute fluxes in z direction
     // Add fluxes to cells that neighbor face
-  #pragma omp parallel
+  #pragma omp parallel for
   {
-    #pragma omp for
     for(int i=0; i<ni; ++i) {
       const float vcoef = nu/dz;
       const float area = dx*dy;
@@ -437,13 +432,16 @@ float integrateKineticEnergy(const float *u, const float *v, const float *w,
   const int kskip = 1;
   double vol = dx*dy*dz;
   double sum = 0;
-  for(int i=0; i<ni; ++i) {
-    for(int j=0; j<nj; ++j) {
-      int offset = kstart+i*iskip+j*jskip;
-      for(int k=0; k<nk; ++k) {
-        const int indx = k+offset;
-        const float udotu = u[indx]*u[indx]+v[indx]*v[indx]+w[indx]*w[indx];
-        sum += 0.5*vol*udotu;
+  #pragma omp parallel for reduce(+:sum)
+  {
+    for(int i=0; i<ni; ++i) {
+      for(int j=0; j<nj; ++j) {
+        int offset = kstart+i*iskip+j*jskip;
+        for(int k=0; k<nk; ++k) {
+          const int indx = k+offset;
+          const float udotu = u[indx]*u[indx]+v[indx]*v[indx]+w[indx]*w[indx];
+          sum += 0.5*vol*udotu;
+        }
       }
     }
   }
@@ -458,12 +456,15 @@ void weightedSum3(float *uout, float w1, const float *u1, float w2,
                   int ni, int nj, int nk, int kstart,
                   int iskip, int jskip) {
   const int kskip = 1;
-  for(int i=0; i<ni; ++i) {
-    for(int j=0; j<nj; ++j) {
-      int offset = kstart+i*iskip+j*jskip;
-      for(int k=0; k<nk; ++k) {
-        const int indx = k+offset;
-        uout[indx] = w1*u1[indx] + w2*u2[indx] + w3*uout[indx];
+  #pragma omp parallel for
+  {
+    for(int i=0; i<ni; ++i) {
+      for(int j=0; j<nj; ++j) {
+        int offset = kstart+i*iskip+j*jskip;
+        for(int k=0; k<nk; ++k) {
+          const int indx = k+offset;
+          uout[indx] = w1*u1[indx] + w2*u2[indx] + w3*uout[indx];
+        }
       }
     }
   }
