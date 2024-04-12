@@ -33,7 +33,40 @@
   
   \section{Methods and Techniques}
 
-  
+  Many of the functions in the code provided deal with sequential
+  sections of memory, and allowing a single thread to access these sequential
+  memory areas would be beneficial. Additionally, there are many nested loops.
+  The Ptolemy system does not have \verb|OMP_NESTED| set by default, thus the
+  use of nested \verb|#pragma omp for| declarations should be avoided. To do
+  so, careful selection of partitioning of parallel and serial sections need to
+  be made to exploit sequential memory access.
+
+  For example, in the \verb|setInitialCOnditions()| function, the inner-most
+  nested loop contains:
+
+  \begin{lstlisting}[language=C, caption=Example C code, label=lst:example]
+for(int k=0; k<nk; ++k) {
+  int indx = offset + k;
+  float dz = (1./nk)*L;
+  float z = 0.5*dz+k*dz - 0.5*L;
+
+  // 3-D taylor green vortex
+  u[indx] = 1.*coef*sin(x/l)*cos(y/l)*cos(z/l);
+  v[indx] = -1.*coef*cos(x/l)*sin(y/l)*cos(z/l);
+  p[indx] = (1./16.)*coef*coef*(cos(2.*x/l)+cos(2.*y/l))*(cos(2.*z/l)+2.);
+  w[indx] = 0;
+}
+  \end{lstlisting}
+
+  For each iteration of the loop, \verb|indx| is the sum of \verb|offset|,
+  defined in the outer loop, and the value of \verb|k|, which is incremented
+  each iteration of the loop. If the loop was parallelized, each thread may
+  access non-sequential sections of the \verb|u|, \verb|v|, \verb|p|, and
+  \verb|w| arrays. If we, instead, parallelize the loop that contains the
+  "\verb|k|" loop, then we can exploit this memory access pattern
+
+  Similarily, this pattern of access is present across many of the functions in
+  the program, and can be exploited in the same way.
 
   \section{Analysis}
 
