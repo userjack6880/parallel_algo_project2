@@ -527,7 +527,7 @@ int main(int ac, char *av[]) {
     double start = omp_get_wtime();
 
     cout << "For Loop Test" << endl;
-    #pragma omp parallel default(private)
+    #pragma omp parallel
     {
       cout << "I am thread " << thread_id << endl;
       int n = 64;
