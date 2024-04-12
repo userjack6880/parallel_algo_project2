@@ -49,7 +49,9 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
   const int kskip=1;
 
   // copy the i periodic faces
-  #pragma omp parallel for collapse(2)
+  #pragma omp parallel
+  {
+    #pragma omp for
     for(int j=0; j<nj; ++j) {
       for(int k=0; k<nk; ++k) {
         int indx = kstart+j*jskip+k*kskip;
@@ -74,12 +76,10 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
         w[indx+ni*iskip]     = w[indx];
         w[indx+(ni+1)*iskip] = w[indx+iskip];
       }
-  }
+    }
 
-  // copy the j periodic faces
-  #pragma omp parallel
-  {
-    #pragma omp for collapse(2)
+    // copy the j periodic faces
+    #pragma omp for
     for(int i=0; i<ni; ++i) {
       int offset = kstart+i*iskip;
       for(int k=0; k<nk; ++k) {
@@ -106,12 +106,9 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
         w[indx+(nj+1)*jskip] = w[indx+jskip];
       }
     }
-  }
 
-  // copy the k periodic faces
-  #pragma omp parallel
-  {
-    #pragma omp for collapse(2)
+    // copy the k periodic faces
+    #pragma omp for
     for(int i=0; i<ni; ++i) {
       int offset = kstart+i*iskip;
       for(int j=0; j<nj; ++j) {
