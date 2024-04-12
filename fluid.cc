@@ -529,6 +529,7 @@ int main(int ac, char *av[]) {
     cout << "For Loop Test" << endl;
     #pragma omp parallel
     {
+      int thread_id = omp_get_thread_num();
       cout << "I am thread " << thread_id << endl;
       int n = 64;
       #pragma omp for
