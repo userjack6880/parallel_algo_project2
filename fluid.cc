@@ -144,13 +144,13 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
 // Before summing up fluxes, zero out the residual term
 void zeroResidual(float *presid, float *uresid, float *vresid, float *wresid,
                   int ni, int nj, int nk , int kstart, int iskip, int jskip) {
+        #pragma omp parallel
+      {
+        #pragma omp for
   const int kskip=1;
   for(int i=-1; i<ni+1; ++i) {
     for(int j=-1; j<nj+1; ++j) {
       int offset = kstart+i*iskip+j*jskip;
-        #pragma omp parallel
-      {
-        #pragma omp for
       for(int k=-1;k<nk+1;++k) {
         const int indx = k+offset;
         presid[indx] = 0;
