@@ -16,23 +16,27 @@ void setInitialConditions(float *p, float *u, float *v, float *w,
   const int kskip = 1;
   const float l = 1.0;
   const float coef = 1.0;
-  for(int i=0; i<ni; ++i) {
-    float dx = (1./ni)*L;
-    float x = 0.5*dx + (i)*dx - 0.5*L;
-    for(int j=0; j<nj; ++j) {
-      float dy = (1./nj)*L;
-      float y = 0.5*dy+j*dy - 0.5*L;
-      int offset = kstart+i*iskip+j*jskip;
-      for(int k=0; k<nk; ++k) {
-        int indx = offset + k;
-        float dz = (1./nk)*L;
-        float z = 0.5*dz+k*dz - 0.5*L;
+  #pragma omp parallel
+  {
+    #pragma omp for
+    for(int i=0; i<ni; ++i) {
+      float dx = (1./ni)*L;
+      float x = 0.5*dx + (i)*dx - 0.5*L;
+      for(int j=0; j<nj; ++j) {
+        float dy = (1./nj)*L;
+        float y = 0.5*dy+j*dy - 0.5*L;
+        int offset = kstart+i*iskip+j*jskip;
+        for(int k=0; k<nk; ++k) {
+          int indx = offset + k;
+          float dz = (1./nk)*L;
+          float z = 0.5*dz+k*dz - 0.5*L;
 
-        // 3-D taylor green vortex
-        u[indx] = 1.*coef*sin(x/l)*cos(y/l)*cos(z/l);
-        v[indx] = -1.*coef*cos(x/l)*sin(y/l)*cos(z/l);
-        p[indx] = (1./16.)*coef*coef*(cos(2.*x/l)+cos(2.*y/l))*(cos(2.*z/l)+2.);
-        w[indx] = 0;
+          // 3-D taylor green vortex
+          u[indx] = 1.*coef*sin(x/l)*cos(y/l)*cos(z/l);
+          v[indx] = -1.*coef*cos(x/l)*sin(y/l)*cos(z/l);
+          p[indx] = (1./16.)*coef*coef*(cos(2.*x/l)+cos(2.*y/l))*(cos(2.*z/l)+2.);
+          w[indx] = 0;
+        }
       }
     }
   }
