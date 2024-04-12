@@ -143,15 +143,19 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
 void zeroResidual(float *presid, float *uresid, float *vresid, float *wresid,
                   int ni, int nj, int nk , int kstart, int iskip, int jskip) {
   const int kskip=1;
-  for(int i=-1; i<ni+1; ++i) {
-    for(int j=-1; j<nj+1; ++j) {
-      int offset = kstart+i*iskip+j*jskip;
-      for(int k=-1;k<nk+1;++k) {
-        const int indx = k+offset;
-        presid[indx] = 0;
-        uresid[indx] = 0;
-        vresid[indx] = 0;
-        wresid[indx] = 0;
+  #pragma omp parallel
+  {
+    #pragma omp for
+    for(int i=-1; i<ni+1; ++i) {
+      for(int j=-1; j<nj+1; ++j) {
+        int offset = kstart+i*iskip+j*jskip;
+        for(int k=-1;k<nk+1;++k) {
+          const int indx = k+offset;
+          presid[indx] = 0;
+          uresid[indx] = 0;
+          vresid[indx] = 0;
+          wresid[indx] = 0;
+        }
       }
     }
   }
