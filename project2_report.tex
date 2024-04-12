@@ -42,7 +42,7 @@
   so, careful selection of partitioning of parallel and serial sections need to
   be made to exploit sequential memory access.
 
-  For example, in the \verb|setInitialCOnditions()| function, the inner-most
+  For example, in the \verb|setInitialCOnditions| function, the inner-most
   nested loop contains:
 
   \begin{lstlisting}[language=C, linewidth=1\textwidth, breaklines=true]
@@ -63,10 +63,55 @@ for(int k=0; k<nk; ++k) {
   each iteration of the loop. If the loop was parallelized, each thread may
   access non-sequential sections of the \verb|u|, \verb|v|, \verb|p|, and
   \verb|w| arrays. If we, instead, parallelize the loop that contains the
-  "\verb|k|" loop, then we can exploit this memory access pattern
-
+  "\verb|k|" loop, then we can exploit this memory access pattern. This effect
+  is more pronounced the further out this parallelization is declared. 
   Similarily, this pattern of access is present across many of the functions in
   the program, and can be exploited in the same way.
+
+  However, this na\"{i}ve approach isn't applicable to all situations. For
+  example, in \verb|computeResidual|, the residual flux vectors (e.g. 
+  \verb|presid|, \verb|uresid|, \verb|vresid|, and \verb|wresid|) may have
+  overlapping read/write access, and the variable will likely need to be
+  locked or careful partitioning of the loops be performed. In this project,
+  atomization will be used, or, in cases where there are multiple variables,
+  \verb|omp_set_lock|.
+
+  \begin{lstlisting}[language=C, linewidth=1\textwidth, breaklines=true]
+// openMP lock
+omp_lock_t lock;
+omp_init_lock(&lock);
+
+#pragma omp parallel
+{
+#pragma omp for
+for(int i=0; i<ni+1; ++i) {
+  const float vcoef = nu/dx;
+  const float area = dy*dz;
+  for(int j=0; j<nj; ++j) {
+    int offset = kstart+i*iskip+j*jskip;
+    for(int k=0; k<nk; ++k) {
+
+...
+
+    omp_set_lock(&lock);
+    presid[indx-iskip] -= pflux;
+    presid[indx]       += pflux;
+    uresid[indx-iskip] -= uflux;
+    uresid[indx]       += uflux;
+    vresid[indx-iskip] -= vflux;
+    vresid[indx]       += vflux;
+    wresid[indx-iskip] -= wflux;
+    wresid[indx]       += wflux;
+    omp_unset_lock(&lock);
+
+...
+
+  \end{lstlisting}
+
+  This ensure that more than one thread updates the variable at the same time
+  to avoid a race condition.
+
+  
 
   \section{Analysis}
 
