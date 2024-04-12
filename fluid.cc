@@ -12,27 +12,29 @@ using namespace std;
 // Compute initial conditions for canonical Taylor-Green vortex problem
 void setInitialConditions(float *p, float *u, float *v, float *w,
                           int ni, int nj, int nk, int kstart,
-                          int iskip, int jskip, float L, int num_threads) {
+                          int iskip, int jskip, float L) {
   const int kskip = 1;
   const float l = 1.0;
   const float coef = 1.0;
-  for(int i=0; i<ni; ++i) {
-    float dx = (1./ni)*L;
-    float x = 0.5*dx + (i)*dx - 0.5*L;
-    for(int j=0; j<nj; ++j) {
-      float dy = (1./nj)*L;
-      float y = 0.5*dy+j*dy - 0.5*L;
-      int offset = kstart+i*iskip+j*jskip;
-      for(int k=0; k<nk; ++k) {
-        int indx = offset + k;
-        float dz = (1./nk)*L;
-        float z = 0.5*dz+k*dz - 0.5*L;
+  #pragma omp parallel {
+    for(int i=0; i<ni; ++i) {
+      float dx = (1./ni)*L;
+      float x = 0.5*dx + (i)*dx - 0.5*L;
+      for(int j=0; j<nj; ++j) {
+        float dy = (1./nj)*L;
+        float y = 0.5*dy+j*dy - 0.5*L;
+        int offset = kstart+i*iskip+j*jskip;
+        for(int k=0; k<nk; ++k) {
+          int indx = offset + k;
+          float dz = (1./nk)*L;
+          float z = 0.5*dz+k*dz - 0.5*L;
 
-        // 3-D taylor green vortex
-        u[indx] = 1.*coef*sin(x/l)*cos(y/l)*cos(z/l);
-        v[indx] = -1.*coef*cos(x/l)*sin(y/l)*cos(z/l);
-        p[indx] = (1./16.)*coef*coef*(cos(2.*x/l)+cos(2.*y/l))*(cos(2.*z/l)+2.);
-        w[indx] = 0;
+          // 3-D taylor green vortex
+          u[indx] = 1.*coef*sin(x/l)*cos(y/l)*cos(z/l);
+          v[indx] = -1.*coef*cos(x/l)*sin(y/l)*cos(z/l);
+          p[indx] = (1./16.)*coef*coef*(cos(2.*x/l)+cos(2.*y/l))*(cos(2.*z/l)+2.);
+          w[indx] = 0;
+        }
       }
     }
   }
@@ -525,18 +527,6 @@ int main(int ac, char *av[]) {
     }
     cout << "Running OpenMP with num threads = " << num_threads << endl;
     double start = omp_get_wtime();
-
-    cout << "For Loop Test" << endl;
-    #pragma omp parallel
-    {
-      int thread_id = omp_get_thread_num();
-      cout << "I am thread " << thread_id << endl;
-      int n = 64;
-      #pragma omp for
-      for (int i = 0; i < n; i++) {
-        cout << thread_id << ": iteration " << i << endl;
-      }
-    }
   #endif
   
   // Eta is a artificial compressibility parameter to the numerical scheme
@@ -577,7 +567,7 @@ int main(int ac, char *av[]) {
 
   // Setup initial conditions
   setInitialConditions(&p[0], &u[0], &v[0], &w[0], 
-                       ni, nj, nk, kstart, iskip, jskip, L, num_threads);
+                       ni, nj, nk, kstart, iskip, jskip, L);
 
   // Find initial integrated fluid kinetic energy to monitor solution 
   float kprev = integrateKineticEnergy(&u[0], &v[0], &w[0], dx, dy, dz, ni, nj, nk, kstart, iskip, jskip);
