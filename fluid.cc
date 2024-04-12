@@ -48,88 +48,94 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
                   int ni, int nj, int nk , int kstart, int iskip, int jskip) {
   const int kskip=1;
 
-  // copy the i periodic faces
-  for(int j=0; j<nj; ++j) {
-    for(int k=0; k<nk; ++k) {
-      int indx = kstart+j*jskip+k*kskip;
+  #pragma omp parallel
+  {
 
-      p[indx-iskip]        = p[indx+(ni-1)*iskip];
-      p[indx-2*iskip]      = p[indx+(ni-2)*iskip];
-      p[indx+ni*iskip]     = p[indx];
-      p[indx+(ni+1)*iskip] = p[indx+iskip];
-
-      u[indx-iskip]        = u[indx+(ni-1)*iskip];
-      u[indx-2*iskip]      = u[indx+(ni-2)*iskip];
-      u[indx+ni*iskip]     = u[indx];
-      u[indx+(ni+1)*iskip] = u[indx+iskip];
-
-      v[indx-iskip]        = v[indx+(ni-1)*iskip];
-      v[indx-2*iskip]      = v[indx+(ni-2)*iskip];
-      v[indx+ni*iskip]     = v[indx];
-      v[indx+(ni+1)*iskip] = v[indx+iskip];
-
-      w[indx-iskip]        = w[indx+(ni-1)*iskip];
-      w[indx-2*iskip]      = w[indx+(ni-2)*iskip];
-      w[indx+ni*iskip]     = w[indx];
-      w[indx+(ni+1)*iskip] = w[indx+iskip];
-    }
-  }
-
-  // copy the j periodic faces
-  for(int i=0; i<ni; ++i) {
-    int offset = kstart+i*iskip;
-    for(int k=0; k<nk; ++k) {
-      const int indx = offset+k*kskip;
-
-      p[indx-jskip]        = p[indx+(nj-1)*jskip];
-      p[indx-2*jskip]      = p[indx+(nj-2)*jskip];
-      p[indx+nj*jskip]     = p[indx];
-      p[indx+(nj+1)*jskip] = p[indx+jskip];
-
-      u[indx-jskip]        = u[indx+(nj-1)*jskip];
-      u[indx-2*jskip]      = u[indx+(nj-2)*jskip];
-      u[indx+nj*jskip]     = u[indx];
-      u[indx+(nj+1)*jskip] = u[indx+jskip];
-
-      v[indx-jskip]        = v[indx+(nj-1)*jskip];
-      v[indx-2*jskip]      = v[indx+(nj-2)*jskip];
-      v[indx+nj*jskip]     = v[indx];
-      v[indx+(nj+1)*jskip] = v[indx+jskip];
-
-      w[indx-jskip]        = w[indx+(nj-1)*jskip];
-      w[indx-2*jskip]      = w[indx+(nj-2)*jskip];
-      w[indx+nj*jskip]     = w[indx];
-      w[indx+(nj+1)*jskip] = w[indx+jskip];
-    }
-  }
-
-  // copy the k periodic faces
-  for(int i=0; i<ni; ++i) {
-    int offset = kstart+i*iskip;
+    // copy the i periodic faces
+    #pragma omp for collapse(2)
     for(int j=0; j<nj; ++j) {
-      const int indx = j*jskip+offset;
+      for(int k=0; k<nk; ++k) {
+        int indx = kstart+j*jskip+k*kskip;
 
-      p[indx-kskip]        = p[indx+(nk-1)*kskip];
-      p[indx-2*kskip]      = p[indx+(nk-2)*kskip];
-      p[indx+nk*kskip]     = p[indx];
-      p[indx+(nk+1)*kskip] = p[indx+kskip];
+        p[indx-iskip]        = p[indx+(ni-1)*iskip];
+        p[indx-2*iskip]      = p[indx+(ni-2)*iskip];
+        p[indx+ni*iskip]     = p[indx];
+        p[indx+(ni+1)*iskip] = p[indx+iskip];
 
-      u[indx-kskip]        = u[indx+(nk-1)*kskip];
-      u[indx-2*kskip]      = u[indx+(nk-2)*kskip];
-      u[indx+nk*kskip]     = u[indx];
-      u[indx+(nk+1)*kskip] = u[indx+kskip];
-      
-      v[indx-kskip]        = v[indx+(nk-1)*kskip];
-      v[indx-2*kskip]      = v[indx+(nk-2)*kskip];
-      v[indx+nk*kskip]     = v[indx];
-      v[indx+(nk+1)*kskip] = v[indx+kskip];
+        u[indx-iskip]        = u[indx+(ni-1)*iskip];
+        u[indx-2*iskip]      = u[indx+(ni-2)*iskip];
+        u[indx+ni*iskip]     = u[indx];
+        u[indx+(ni+1)*iskip] = u[indx+iskip];
 
-      w[indx-kskip]        = w[indx+(nk-1)*kskip];
-      w[indx-2*kskip]      = w[indx+(nk-2)*kskip];
-      w[indx+nk*kskip]     = w[indx];
-      w[indx+(nk+1)*kskip] = w[indx+kskip];
+        v[indx-iskip]        = v[indx+(ni-1)*iskip];
+        v[indx-2*iskip]      = v[indx+(ni-2)*iskip];
+        v[indx+ni*iskip]     = v[indx];
+        v[indx+(ni+1)*iskip] = v[indx+iskip];
+
+        w[indx-iskip]        = w[indx+(ni-1)*iskip];
+        w[indx-2*iskip]      = w[indx+(ni-2)*iskip];
+        w[indx+ni*iskip]     = w[indx];
+        w[indx+(ni+1)*iskip] = w[indx+iskip];
+      }
     }
-  }
+
+    // copy the j periodic faces
+    #pragma omp for collapse(2)
+    for(int i=0; i<ni; ++i) {
+      int offset = kstart+i*iskip;
+      for(int k=0; k<nk; ++k) {
+        const int indx = offset+k*kskip;
+
+        p[indx-jskip]        = p[indx+(nj-1)*jskip];
+        p[indx-2*jskip]      = p[indx+(nj-2)*jskip];
+        p[indx+nj*jskip]     = p[indx];
+        p[indx+(nj+1)*jskip] = p[indx+jskip];
+
+        u[indx-jskip]        = u[indx+(nj-1)*jskip];
+        u[indx-2*jskip]      = u[indx+(nj-2)*jskip];
+        u[indx+nj*jskip]     = u[indx];
+        u[indx+(nj+1)*jskip] = u[indx+jskip];
+
+        v[indx-jskip]        = v[indx+(nj-1)*jskip];
+        v[indx-2*jskip]      = v[indx+(nj-2)*jskip];
+        v[indx+nj*jskip]     = v[indx];
+        v[indx+(nj+1)*jskip] = v[indx+jskip];
+
+        w[indx-jskip]        = w[indx+(nj-1)*jskip];
+        w[indx-2*jskip]      = w[indx+(nj-2)*jskip];
+        w[indx+nj*jskip]     = w[indx];
+        w[indx+(nj+1)*jskip] = w[indx+jskip];
+      }
+    }
+
+    // copy the k periodic faces
+    #pragma omp for collapse(2)
+    for(int i=0; i<ni; ++i) {
+      int offset = kstart+i*iskip;
+      for(int j=0; j<nj; ++j) {
+        const int indx = j*jskip+offset;
+
+        p[indx-kskip]        = p[indx+(nk-1)*kskip];
+        p[indx-2*kskip]      = p[indx+(nk-2)*kskip];
+        p[indx+nk*kskip]     = p[indx];
+        p[indx+(nk+1)*kskip] = p[indx+kskip];
+
+        u[indx-kskip]        = u[indx+(nk-1)*kskip];
+        u[indx-2*kskip]      = u[indx+(nk-2)*kskip];
+        u[indx+nk*kskip]     = u[indx];
+        u[indx+(nk+1)*kskip] = u[indx+kskip];
+        
+        v[indx-kskip]        = v[indx+(nk-1)*kskip];
+        v[indx-2*kskip]      = v[indx+(nk-2)*kskip];
+        v[indx+nk*kskip]     = v[indx];
+        v[indx+(nk+1)*kskip] = v[indx+kskip];
+
+        w[indx-kskip]        = w[indx+(nk-1)*kskip];
+        w[indx-2*kskip]      = w[indx+(nk-2)*kskip];
+        w[indx+nk*kskip]     = w[indx];
+        w[indx+(nk+1)*kskip] = w[indx+kskip];
+      }
+    }
 }
       
 
