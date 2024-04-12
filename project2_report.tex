@@ -236,8 +236,6 @@ float minDt = 1e30;
   \end{table}
 
   \begin{figure}[H]
-    \caption{Estimated Speedup}
-    \label{fig:estspeedupfig}
     \centering
 
     \begin{tikzpicture}
@@ -248,7 +246,12 @@ float minDt = 1e30;
         ylabel={$speedup$},
         grid=both,
         ymin=0,
-        ymax=10
+        ymax=10,
+        xmin=0,
+        xmax=100,
+        xtick={1,2,4,8,16,32,64},
+        xticklabels={1,2,4,8,16,32,64}
+        title={Number of Processors vs Estimated Speedup}
       ]
 
       \addplot[blue,mark=none] coordinates {
@@ -262,6 +265,8 @@ float minDt = 1e30;
       };
       \end{semilogxaxis}
     \end{tikzpicture}
+    \caption{Estimated Speedup}
+    \label{fig:estspeedupfig}
   \end{figure}
 
   The estimated speedups are listed in Table~\ref{tab:estspeeduptab} and plotted
