@@ -179,14 +179,7 @@ void computeResidual(float *presid, float *uresid, float *vresid, float *wresid,
   // Loop through i faces of the mesh and compute fluxes in x direction
   // Add fluxes to cells that neighbor face
 
-  // openMP lock
-  omp_lock_t lockp, locku, lockv, lockw;
-  omp_init_lock(&lockp);
-  omp_init_lock(&locku);
-  omp_init_lock(&lockv);
-  omp_init_lock(&lockw);
-
-  #pragma omp parallel
+   #pragma omp parallel
   {
     #pragma omp for
     for(int j=0; j<nj; ++j) {
@@ -404,23 +397,33 @@ float computeStableTimestep(const float *u, const float *v, const float *w,
                             int iskip, int jskip) {
   const int kskip = 1;
   float minDt = 1e30;
-  for(int i=0; i<ni; ++i) {
-    for(int j=0; j<nj; ++j) {
-      int offset = kstart+i*iskip+j*jskip;
-      for(int k=0; k<nk; ++k) {
-        const int indx = k+offset;
+  #pragma omp parallel
+  {
+    float local_minDt = 1e30;
+    #pragma omp for nowait
+    for(int i=0; i<ni; ++i) {
+      for(int j=0; j<nj; ++j) {
+        int offset = kstart+i*iskip+j*jskip;
+        for(int k=0; k<nk; ++k) {
+          const int indx = k+offset;
 
-        // inviscid timestep
-        const float maxu2 = max(u[indx]*u[indx],max(v[indx]*v[indx],w[indx]*w[indx]));
-        const float af = sqrt(maxu2+eta);
-        const float maxev = sqrt(maxu2)+af;
-        const float sum = maxev*(1./dx+1./dy+1./dz);
-        minDt=min(minDt,cfl/sum);
+          // inviscid timestep
+          const float maxu2 = max(u[indx]*u[indx],max(v[indx]*v[indx],w[indx]*w[indx]));
+          const float af = sqrt(maxu2+eta);
+          const float maxev = sqrt(maxu2)+af;
+          const float sum = maxev*(1./dx+1./dy+1./dz);
+          local_minDt=min(local_minDt,cfl/sum);
 
-        // viscous stable timestep
-        const float dist = min(dx,min(dy,dz));
-        minDt=min<float>(minDt,0.2*cfl*dist*dist/nu);
+          // viscous stable timestep
+          const float dist = min(dx,min(dy,dz));
+          local_minDt=min<float>(local_minDt,0.2*cfl*dist*dist/nu);
+        }
       }
+    }
+
+    #pragma omp critical
+    {
+      minDT=min(minDT,local_minDt);
     }
   }
   return minDt;
