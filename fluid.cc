@@ -16,7 +16,7 @@ void setInitialConditions(float *p, float *u, float *v, float *w,
   const int kskip = 1;
   const float l = 1.0;
   const float coef = 1.0;
-  #pragma omp parallel
+  #pragma omp parallel shared(i,j,k)
   {
     #pragma omp for collapse(2)
     for(int i=0; i<ni; ++i) {
