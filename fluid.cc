@@ -12,7 +12,7 @@ using namespace std;
 // Compute initial conditions for canonical Taylor-Green vortex problem
 void setInitialConditions(float *p, float *u, float *v, float *w,
                           int ni, int nj, int nk, int kstart,
-                          int iskip, int jskip, float L) {
+                          int iskip, int jskip, float L, int num_threads) {
   const int kskip = 1;
   const float l = 1.0;
   const float coef = 1.0;
@@ -565,7 +565,7 @@ int main(int ac, char *av[]) {
 
   // Setup initial conditions
   setInitialConditions(&p[0], &u[0], &v[0], &w[0], 
-                       ni, nj, nk, kstart, iskip, jskip, L);
+                       ni, nj, nk, kstart, iskip, jskip, L, num_threads);
 
   // Find initial integrated fluid kinetic energy to monitor solution 
   float kprev = integrateKineticEnergy(&u[0], &v[0], &w[0], dx, dy, dz, ni, nj, nk, kstart, iskip, jskip);
