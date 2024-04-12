@@ -189,10 +189,10 @@ void computeResidual(float *presid, float *uresid, float *vresid, float *wresid,
   #pragma omp parallel
   {
     #pragma omp for
-    for(int i=0; i<ni+1; ++i) {
+    for(int j=0; j<nj; ++j) {
       const float vcoef = nu/dx;
       const float area = dy*dz;
-      for(int j=0; j<nj; ++j) {
+      for(int i=0; i<ni+1; ++i) {
         int offset = kstart+i*iskip+j*jskip;
         for(int k=0; k<nk; ++k) {
           const int indx = k+offset;
@@ -242,22 +242,14 @@ void computeResidual(float *presid, float *uresid, float *vresid, float *wresid,
           vflux = area*(vflux - vcoef*((5./4.)*(vr-vl) - (1./12.)*(vrr-vll)));
           wflux = area*(wflux - vcoef*((5./4.)*(wr-wl) - (1./12.)*(wrr-wll)));
 
-          omp_set_lock(&lockp);
           presid[indx-iskip] -= pflux;
           presid[indx]       += pflux;
-          omp_unset_lock(&lockp);
-          omp_set_lock(&locku);
           uresid[indx-iskip] -= uflux;
           uresid[indx]       += uflux;
-          omp_unset_lock(&locku);
-          omp_set_lock(&lockv);
           vresid[indx-iskip] -= vflux;
           vresid[indx]       += vflux;
-          omp_unset_lock(&lockv);
-          omp_set_lock(&lockw);
           wresid[indx-iskip] -= wflux;
           wresid[indx]       += wflux;
-          omp_unset_lock(&lockw);
         }
       }
     }
@@ -320,22 +312,14 @@ void computeResidual(float *presid, float *uresid, float *vresid, float *wresid,
           vflux = area*(vflux - vcoef*((5./4.)*(vr-vl) - (1./12.)*(vrr-vll)));
           wflux = area*(wflux - vcoef*((5./4.)*(wr-wl) - (1./12.)*(wrr-wll)));
 
-          omp_set_lock(&lockp);
           presid[indx-jskip] -= pflux;
           presid[indx]       += pflux;
-          omp_unset_lock(&lockp);
-          omp_set_lock(&locku);
           uresid[indx-jskip] -= uflux;
           uresid[indx]       += uflux;
-          omp_unset_lock(&locku);
-          omp_set_lock(&lockv);
           vresid[indx-jskip] -= vflux;
           vresid[indx]       += vflux;
-          omp_unset_lock(&lockv);
-          omp_set_lock(&lockw);
           wresid[indx-jskip] -= wflux;
           wresid[indx]       += wflux;
-          omp_unset_lock(&lockw);
         }
       }
     }
@@ -398,22 +382,14 @@ void computeResidual(float *presid, float *uresid, float *vresid, float *wresid,
           vflux = area*(vflux - vcoef*((5./4.)*(vr-vl) - (1./12.)*(vrr-vll)));
           wflux = area*(wflux - vcoef*((5./4.)*(wr-wl) - (1./12.)*(wrr-wll)));
 
-          omp_set_lock(&lockp);
           presid[indx-kskip] -= pflux;
           presid[indx]       += pflux;
-          omp_unset_lock(&lockp);
-          omp_set_lock(&locku);
           uresid[indx-kskip] -= uflux;
           uresid[indx]       += uflux;
-          omp_unset_lock(&locku);
-          omp_set_lock(&lockv);
           vresid[indx-kskip] -= vflux;
           vresid[indx]       += vflux;
-          omp_unset_lock(&lockv);
-          omp_set_lock(&lockw);
           wresid[indx-kskip] -= wflux;
           wresid[indx]       += wflux;
-          omp_unset_lock(&lockw);
         }
       }
     }
