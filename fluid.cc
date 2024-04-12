@@ -73,7 +73,6 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
       w[indx+(ni+1)*iskip] = w[indx+iskip];
     }
   }
-      }
 
   // copy the j periodic faces
         #pragma omp for schedule(static)
