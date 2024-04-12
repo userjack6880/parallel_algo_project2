@@ -19,13 +19,13 @@ void setInitialConditions(float *p, float *u, float *v, float *w,
   for(int i=0; i<ni; ++i) {
     float dx = (1./ni)*L;
     float x = 0.5*dx + (i)*dx - 0.5*L;
-    #pragma omp parallel
-    {
-      #pragma omp for
-      for(int j=0; j<nj; ++j) {
-        float dy = (1./nj)*L;
-        float y = 0.5*dy+j*dy - 0.5*L;
-        int offset = kstart+i*iskip+j*jskip;
+    for(int j=0; j<nj; ++j) {
+      float dy = (1./nj)*L;
+      float y = 0.5*dy+j*dy - 0.5*L;
+      int offset = kstart+i*iskip+j*jskip;
+      #pragma omp parallel
+      {
+        #pragma omp for
         for(int k=0; k<nk; ++k) {
           int indx = offset + k;
           float dz = (1./nk)*L;
@@ -49,10 +49,10 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
   const int kskip=1;
 
   // copy the i periodic faces
-  #pragma omp parallel
-  {
-    #pragma omp for
-    for(int j=0; j<nj; ++j) {
+  for(int j=0; j<nj; ++j) {
+    #pragma omp parallel
+    {
+      #pragma omp for
       for(int k=0; k<nk; ++k) {
         int indx = kstart+j*jskip+k*kskip;
 
@@ -80,11 +80,11 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
   }
 
   // copy the j periodic faces
-  #pragma omp parallel
-  {
-    #pragma omp for
-    for(int i=0; i<ni; ++i) {
-      int offset = kstart+i*iskip;
+  for(int i=0; i<ni; ++i) {
+    int offset = kstart+i*iskip;
+    #pragma omp parallel
+    {
+      #pragma omp for
       for(int k=0; k<nk; ++k) {
         const int indx = offset+k*kskip;
 
@@ -112,11 +112,11 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
   }
 
   // copy the k periodic faces
-  #pragma omp parallel
-  {
-    #pragma omp for
-    for(int i=0; i<ni; ++i) {
-      int offset = kstart+i*iskip;
+  for(int i=0; i<ni; ++i) {
+    int offset = kstart+i*iskip;
+    #pragma omp parallel
+    {
+      #pragma omp for
       for(int j=0; j<nj; ++j) {
         const int indx = j*jskip+offset;
 
@@ -150,11 +150,11 @@ void zeroResidual(float *presid, float *uresid, float *vresid, float *wresid,
                   int ni, int nj, int nk , int kstart, int iskip, int jskip) {
   const int kskip=1;
   for(int i=-1; i<ni+1; ++i) {
-    #pragma omp parallel
-    {
-      #pragma omp for
-      for(int j=-1; j<nj+1; ++j) {
-        int offset = kstart+i*iskip+j*jskip;
+    for(int j=-1; j<nj+1; ++j) {
+      int offset = kstart+i*iskip+j*jskip;
+      #pragma omp parallel
+      {
+        #pragma omp for
         for(int k=-1;k<nk+1;++k) {
           const int indx = k+offset;
           presid[indx] = 0;
