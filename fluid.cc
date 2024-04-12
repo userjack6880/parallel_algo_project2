@@ -44,7 +44,7 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
                   int ni, int nj, int nk , int kstart, int iskip, int jskip) {
   const int kskip=1;
 
-      #pragma omp parallel
+      #pragma omp parallel sections
       {
   // copy the i periodic faces
 
