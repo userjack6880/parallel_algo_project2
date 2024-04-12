@@ -145,9 +145,9 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
 void zeroResidual(float *presid, float *uresid, float *vresid, float *wresid,
                   int ni, int nj, int nk , int kstart, int iskip, int jskip) {
   const int kskip=1;
-        #pragma omp parallel schedule(static)
+        #pragma omp parallel
       {
-        #pragma omp for
+        #pragma omp for schedule(static)
   for(int i=-1; i<ni+1; ++i) {
     for(int j=-1; j<nj+1; ++j) {
       int offset = kstart+i*iskip+j*jskip;
