@@ -145,7 +145,7 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
 void zeroResidual(float *presid, float *uresid, float *vresid, float *wresid,
                   int ni, int nj, int nk , int kstart, int iskip, int jskip) {
   const int kskip=1;
-        #pragma omp parallel
+        #pragma omp parallel schedule(static)
       {
         #pragma omp for
   for(int i=-1; i<ni+1; ++i) {
