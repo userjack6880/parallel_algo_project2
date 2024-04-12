@@ -23,20 +23,16 @@ void setInitialConditions(float *p, float *u, float *v, float *w,
       float dy = (1./nj)*L;
       float y = 0.5*dy+j*dy - 0.5*L;
       int offset = kstart+i*iskip+j*jskip;
-      #pragma omp parallel
-      {
-        #pragma omp for
-        for(int k=0; k<nk; ++k) {
-          int indx = offset + k;
-          float dz = (1./nk)*L;
-          float z = 0.5*dz+k*dz - 0.5*L;
+      for(int k=0; k<nk; ++k) {
+        int indx = offset + k;
+        float dz = (1./nk)*L;
+        float z = 0.5*dz+k*dz - 0.5*L;
 
-          // 3-D taylor green vortex
-          u[indx] = 1.*coef*sin(x/l)*cos(y/l)*cos(z/l);
-          v[indx] = -1.*coef*cos(x/l)*sin(y/l)*cos(z/l);
-          p[indx] = (1./16.)*coef*coef*(cos(2.*x/l)+cos(2.*y/l))*(cos(2.*z/l)+2.);
-          w[indx] = 0;
-        }
+        // 3-D taylor green vortex
+        u[indx] = 1.*coef*sin(x/l)*cos(y/l)*cos(z/l);
+        v[indx] = -1.*coef*cos(x/l)*sin(y/l)*cos(z/l);
+        p[indx] = (1./16.)*coef*coef*(cos(2.*x/l)+cos(2.*y/l))*(cos(2.*z/l)+2.);
+        w[indx] = 0;
       }
     }
   }
@@ -49,6 +45,9 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
   const int kskip=1;
 
   // copy the i periodic faces
+      #pragma omp parallel
+      {
+        #pragma omp for
   for(int j=0; j<nj; ++j) {
     for(int k=0; k<nk; ++k) {
       int indx = kstart+j*jskip+k*kskip;
@@ -74,6 +73,7 @@ void copyPeriodic(float *p, float *u, float *v, float *w,
       w[indx+(ni+1)*iskip] = w[indx+iskip];
     }
   }
+      }
 
   // copy the j periodic faces
   for(int i=0; i<ni; ++i) {
