@@ -51,6 +51,7 @@
                      linewidth=1\textwidth,
                      breaklines=true, 
                      basicstyle=\small\ttfamily]
+
 for(int k=0; k<nk; ++k) {
   int indx = offset + k;
   float dz = (1./nk)*L;
@@ -94,8 +95,30 @@ for(int k=0; k<nk; ++k) {
   in each direction. Furthermore, the section of each loop where the vectors
   are accessed includes one of the three skip directions.
 
-  \begin{lstlisting}[language=C, linewidth=1\textwidth, breaklines=true]
+  \begin{lstlisting}[language=C, 
+                     linewidth=1\textwidth,
+                     breaklines=true, 
+                     basicstyle=\small\ttfamily]
 
+presid[indx-iskip] -= pflux;
+presid[indx]       += pflux;
+uresid[indx-iskip] -= uflux;
+uresid[indx]       += uflux;
+vresid[indx-iskip] -= vflux;
+vresid[indx]       += vflux;
+wresid[indx-iskip] -= wflux;
+wresid[indx]       += wflux;
+
+  \end{lstlisting}
+
+  Ensuring that the outer most loop isn't incrementing the direction that is
+  being callculatd should be sufficient to prevent a race condition.
+
+  \begin{lstlisting}[language=C, 
+                     linewidth=1\textwidth,
+                     breaklines=true, 
+                     basicstyle=\small\ttfamily]
+                     
 #pragma omp parallel
 {
   #pragma omp for
@@ -114,8 +137,8 @@ for(int k=0; k<nk; ++k) {
   Simply swapping the \verb|i| and \verb|j| loops in the first vector
   calculation kept the integrity of the data while eliminating the need for
   variable locks. The second and third calculation in \verb|computeResidual| do
-  not need to have the loops reordered as they are not parallelizing two index
-  locations next to each other.
+  not need to have the loops reordered as the direction of the skip variable is
+  the same as the inner two loops.
 
   Finally, some functions, such as \verb|computeStableTimestep|, requires that
   a minimum be reduced from the parallelization portion. In C++, if this was a
@@ -126,7 +149,10 @@ for(int k=0; k<nk; ++k) {
   section is added so that only one thread does a global (or team) comparison
   to set the final minimum value.
 
-  \begin{lstlisting}[language=C, linewidth=1\textwidth, breaklines=true]
+  \begin{lstlisting}[language=C, 
+                     linewidth=1\textwidth,
+                     breaklines=true, 
+                     basicstyle=\small\ttfamily]
 
 float minDt = 1e30;
 #pragma omp parallel
@@ -167,6 +193,11 @@ float minDt = 1e30;
   Further parallelization could be done, with each parallelized function being
   further parallelized using MPI, however this is outside of the scope of the
   undergraduate assignment.
+
+  The final code as written will be ran a total of 10 times each over a varying
+  number of OpenMP threads. The results will be collected, and the parallel
+  runs compared against the single-threaded runs to ensure race conditions did
+  not occur (i.e. reproduceability).
 
   \section{Analysis}
 
