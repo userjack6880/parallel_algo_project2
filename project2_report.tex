@@ -11,6 +11,9 @@
 \tikzstyle{arrow} = [thick,->,>=stealth]
 \usepackage{float}
 \usepackage{listings}
+\newfloat{lstfloat}{H}{lop}
+\floatname{lstfloat}{Listing}
+\def\lstfloatautorefname{Listing}
 \usepackage{pgfplots}
 
 \setlength{\belowcaptionskip}{10pt}
@@ -47,11 +50,11 @@
   For example, in the \verb|setInitialCOnditions| function, the inner-most
   nested loop contains:
 
+  \begin{lstfloat}
   \begin{lstlisting}[language=C, 
                      linewidth=1\textwidth,
                      breaklines=true, 
-                     basicstyle=\small\ttfamily,
-                     float=H]
+                     basicstyle=\small\ttfamily]
 
 for(int k=0; k<nk; ++k) {
   int indx = offset + k;
@@ -64,6 +67,7 @@ for(int k=0; k<nk; ++k) {
   w[indx] = 0;
 }
   \end{lstlisting}
+  \end{lstfloat}
 
   For each iteration of the loop, \verb|indx| is the sum of \verb|offset|,
   defined in the outer loop, and the value of \verb|k|, which is incremented
@@ -99,8 +103,7 @@ for(int k=0; k<nk; ++k) {
   \begin{lstlisting}[language=C, 
                      linewidth=1\textwidth,
                      breaklines=true, 
-                     basicstyle=\small\ttfamily,
-                     float=H]
+                     basicstyle=\small\ttfamily]
 
 presid[indx-iskip] -= pflux;
 presid[indx]       += pflux;
@@ -119,8 +122,7 @@ wresid[indx]       += wflux;
   \begin{lstlisting}[language=C, 
                      linewidth=1\textwidth,
                      breaklines=true, 
-                     basicstyle=\small\ttfamily,
-                     float=H]
+                     basicstyle=\small\ttfamily]
                      
 #pragma omp parallel
 {
@@ -154,8 +156,7 @@ wresid[indx]       += wflux;
   \begin{lstlisting}[language=C, 
                      linewidth=1\textwidth,
                      breaklines=true, 
-                     basicstyle=\small\ttfamily,
-                     float=H]
+                     basicstyle=\small\ttfamily]
 
 float minDt = 1e30;
 #pragma omp parallel
