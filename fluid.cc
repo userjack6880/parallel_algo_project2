@@ -405,7 +405,7 @@ float computeStableTimestep(const float *u, const float *v, const float *w,
 
     #pragma omp critical
     {
-      minDT=min(minDT,local_minDt);
+      minDt=min(minDt,local_minDt);
     }
   }
   return minDt;
