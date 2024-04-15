@@ -332,7 +332,7 @@ float minDt = 1e30;
     };
     
     % Error bars for minimum and maximum
-    \addplot+[error bars/.cd, y dir=both, y explicit, only marks] coordinates {
+    \addplot+[scatter,error bars/.cd, y dir=both, y explicit,mark=none] coordinates {
         (1, 25) +- (0,20)
         (2, 35) +- (0, 10)
         (3, 30) +- (0, 10)
