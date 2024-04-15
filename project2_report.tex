@@ -284,7 +284,7 @@ float minDt = 1e30;
       };
       \end{semilogxaxis}
     \end{tikzpicture}
-    \caption{Estimated Speedup vs Number of Processors}
+    \caption{Estimated Speedup}
     \label{fig:estspeedupfig}
   \end{figure}
 
@@ -322,8 +322,52 @@ float minDt = 1e30;
 
       \end{semilogxaxis}
     \end{tikzpicture}
-    \caption{Execution Time vs Number of Processors}
-    \label{fig:test}
+    \caption{Execution Time}
+    \label{fig:resulttime}
+  \end{figure}
+
+  \begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+      \begin{semilogxaxis}[
+        width=0.9\textwidth,
+        height=8cm,
+        xlabel={$processors$},
+        ylabel={$speedup$},
+        legend pos=north west,
+        grid=both,
+        ymin=0,
+        ymax=200,
+        xmax=100,
+        xtick={1,2,4,8,16,32,64},
+        xticklabels={1,2,4,8,16,32,64}
+      ]
+        \addplot[blue,mark=none] coordinates {
+          (1,141.693)
+          (2,1.964)
+          (4,3.857)
+          (8,6.818)
+          (16,9.140)
+          (32,11.279)
+          (64,12.561)
+        };
+        \addlegendentry{actual}
+
+        \addplot[red,dotted,mark=none] coordinates {
+          (1,1)
+          (2,1.81)
+          (4,3.077)
+          (8,4.706)
+          (16,6.4)
+          (32,7.805)
+          (64,8.767)
+        }
+        \addlegendentry{estimated}
+
+      \end{semilogxaxis}
+    \end{tikzpicture}
+    \caption{Actual vs Estimated Speedup}
+    \label{fig:resultspeedup}
   \end{figure}
 
   \section{Synthesis}
