@@ -314,7 +314,6 @@ float minDt = 1e30;
         (3, 35)
         % Add more coordinates as needed
     };
-    \addlegendentry{Average}
     
     % Minimum plot
     \addplot[mark=none,red,dashed] coordinates {
@@ -323,7 +322,6 @@ float minDt = 1e30;
         (3, 25)
         % Add more coordinates as needed
     };
-    \addlegendentry{Minimum}
     
     % Maximum plot
     \addplot[mark=none,green,dashed] coordinates {
@@ -332,7 +330,6 @@ float minDt = 1e30;
         (3, 45)
         % Add more coordinates as needed
     };
-    \addlegendentry{Maximum}
     
     % Error bars for minimum and maximum
     \addplot+[error bars/.cd, y dir=both, y explicit] coordinates {
