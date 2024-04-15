@@ -333,16 +333,9 @@ float minDt = 1e30;
     
     % Error bars for minimum and maximum
     \addplot+[error bars/.cd, y dir=both, y explicit] coordinates {
-        (1, 20) +- (0, 10)
+        (1, 20) + (0, 10) - (0,20)
         (2, 30) +- (0, 10)
         (3, 25) +- (0, 10)
-        % Add more coordinates as needed
-    };
-    
-    \addplot+[error bars/.cd, y dir=both, y explicit] coordinates {
-        (1, 40) +- (0, 10)
-        (2, 50) +- (0, 10)
-        (3, 45) +- (0, 10)
         % Add more coordinates as needed
     };
     
