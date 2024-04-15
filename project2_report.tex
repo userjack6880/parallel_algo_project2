@@ -295,7 +295,7 @@ float minDt = 1e30;
 
   \section{Results}
 
-  \begin{figure}[h]
+  \begin{figure}[H]
     \centering
     \begin{tikzpicture}
       \begin{semilogxaxis}[
@@ -326,7 +326,7 @@ float minDt = 1e30;
     \label{fig:resulttime}
   \end{figure}
 
-  \begin{figure}[h]
+  \begin{figure}[H]
     \centering
     \begin{tikzpicture}
       \begin{semilogxaxis}[
@@ -382,11 +382,11 @@ float minDt = 1e30;
   originally expected using the estimation that 90\% of the code was
   parallelized. For the 64 processor run, the actual speedup was:
 
-  \[ S_{actual} = frac{t_1}{t_64} = frac{141.693}{11.280} = 12.561 \]
+  \[ S_{actual} = \frac{t_1}{t_64} = \frac{141.693}{11.280} = 12.561 \]
 
   This speedup indicates that the real serial fraction ended up being:
 
-  \[ f = frac{frac{p}{S_{actual}} - 1}{p - 1} = frac{frac{64}{12.561} - 1}{64 - 1} = 0.065 \]
+  \[ f = \frac{\frac{p}{S_{actual}} - 1}{p - 1} = \frac{\frac{64}{12.561} - 1}{64 - 1} = 0.065 \]
 
   A serial raction of 6.5\% is not unreasonable, as the originally estimated
   fraction was 10\%.
