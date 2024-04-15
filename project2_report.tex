@@ -376,6 +376,9 @@ float minDt = 1e30;
   calculated using the mean execution time as \(t_1\) and \(t_p\) (respectively
   for both serial and parallel values).
 
+  A \verb|diff| performed between the single-threaded runs and every subsequent
+  run with greater processor values confirmed that no race-conditions existed.
+
   \section{Synthesis}
 
   Speedup, as shown in Figure~\ref{fig:resultspeedup} exceeded what was
@@ -384,15 +387,32 @@ float minDt = 1e30;
 
   \[ S_{actual} = \frac{t_1}{t_64} = \frac{141.693}{11.280} = 12.561 \]
 
-  This speedup indicates that the real serial fraction ended up being:
+  This exceeds both the estimated speedup of 8.787 and \(S_{upper}\) of 10.
+  Using the actual speedup, the calculated serial fraction is:
 
   \[ f = \frac{\frac{p}{S_{actual}} - 1}{p - 1} = \frac{\frac{64}{12.561} - 1}{64 - 1} = 0.065 \]
 
   A serial raction of 6.5\% is not unreasonable, as the originally estimated
   fraction was 10\%.
 
+  At around 8 processors, the reduction in execution time begins to taper off,
+  and ultimately by 32 processors, the speedup begins to reach an upper limit.
+
   \section{Conclusion}
 
+  The results are entirely satisfactory and within reason. The initial estimate
+  was fairly conservative, stating that 90\% of the code was parallelizable.
+  The actual portion may have been marginally greater, or cache effects may
+  have contributed to the additional speedup observed, offsetting any potential
+  overhead from implementing OpenMP.
 
+  The results also indicate that the methodologies to avoid performance
+  penalties by declaring a critical, or atomized, section within the 
+  \verb|computeResidual| function was correct. This allowed the program to
+  actually achieve (and exceed) expected speedup.
+
+  Finally, the strategy of parallelizing the outermost loops where possible,
+  and in the case of \verb|computeResidual|, reordering the order of loops
+  performed, successfully prevented a race condition.
 
 \end{document}
