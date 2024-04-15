@@ -270,8 +270,7 @@ float minDt = 1e30;
         ymax=10,
         xmax=100,
         xtick={1,2,4,8,16,32,64},
-        xticklabels={1,2,4,8,16,32,64},
-        title={Number of Processors vs Estimated Speedup}
+        xticklabels={1,2,4,8,16,32,64}
       ]
 
       \addplot[blue,mark=none] coordinates {
@@ -285,7 +284,7 @@ float minDt = 1e30;
       };
       \end{semilogxaxis}
     \end{tikzpicture}
-    \caption{Estimated Speedup}
+    \caption{Estimated Speedup vs Number of Processors}
     \label{fig:estspeedupfig}
   \end{figure}
 
@@ -296,50 +295,59 @@ float minDt = 1e30;
 
   \section{Results}
 
-  \begin{tikzpicture}
-    \begin{axis}[
-        xlabel={X Axis Label},
-        ylabel={Y Axis Label},
+  \begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+      \begin{semilogxaxis}[
+        width=0.9\textwidth,
+        height=8cm,
+        xlabel={$processors$},
+        ylabel={$time$},
+        grid=both,
         ymin=0,
-        ymax=100,
-        legend pos=north west,
-        grid=both
-    ]
-    
-    % Average plot
-    \addplot[blue,mark=none] coordinates {
-        (1, 30)
-        (2, 40)
-        (3, 35)
-        % Add more coordinates as needed
-    };
-    
-    % Minimum plot
-    \addplot[red,dashed,mark=none] coordinates {
-        (1, 20)
-        (2, 30)
-        (3, 25)
-        % Add more coordinates as needed
-    };
-    
-    % Maximum plot
-    \addplot[green,dashed,mark=none] coordinates {
-        (1, 40)
-        (2, 50)
-        (3, 45)
-        % Add more coordinates as needed
-    };
-    
-    % Error bars for minimum and maximum
-    \addplot[scatter,only marks,error bars/.cd, y dir=both, y explicit] coordinates {
-        (1, 25) +- (0, 20)
-        (2, 35) +- (0, 10)
-        (3, 30) +- (0, 10)
-        % Add more coordinates as needed
-    };
-    
-    \end{axis}
-  \end{tikzpicture}
+        ymax=10,
+        xmax=100,
+        xtick={1,2,4,8,16,32,64},
+        xticklabels={1,2,4,8,16,32,64}
+      ]
+      
+        % Average plot
+        \addplot[blue,mark=none] coordinates {
+            (1, 30)
+            (2, 40)
+            (3, 35)
+            % Add more coordinates as needed
+        };
+        
+        % Minimum plot
+        \addplot[red,dashed,mark=none] coordinates {
+            (1, 20)
+            (2, 30)
+            (3, 25)
+            % Add more coordinates as needed
+        };
+        
+        % Maximum plot
+        \addplot[green,dashed,mark=none] coordinates {
+            (1, 40)
+            (2, 50)
+            (3, 45)
+            % Add more coordinates as needed
+        };
+        
+        % Error bars for minimum and maximum
+        \addplot[scatter,only marks,error bars/.cd, y dir=both, y explicit] coordinates {
+            (1, 25) +- (0, 20)
+            (2, 35) +- (0, 10)
+            (3, 30) +- (0, 10)
+            % Add more coordinates as needed
+        };
+
+      \end{semilogxaxis}
+    \end{tikzpicture}
+    \caption{Estimated Speedup}
+    \label{fig:test}
+  \end{figure}
 
   \section{Synthesis}
 
