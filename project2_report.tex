@@ -311,15 +311,7 @@ float minDt = 1e30;
         xticklabels={1,2,4,8,16,32,64}
       ]
       
-        \addplot[blue,mark=none] coordinates {
-          (1,141.693)
-          (2,72.163)
-          (4,36.734)
-          (8,20.781)
-          (16,15.502)
-          (32,12.563)
-          (64,11.280)
-        };
+
         
         \addplot[scatter,mark=none,error bars/.cd, y dir=both, y explicit] coordinates {
           (1,141.693)   += (0,12.376)   -= (0,7.022)
